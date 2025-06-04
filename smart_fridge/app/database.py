@@ -4,7 +4,7 @@ from pathlib import Path
 DB_FILE = Path(__file__).parent / "fridge.db"
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_FILE, check_same_thread=False)
+    conn = sqlite3.connect(DB_FILE, timeout=10, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -31,3 +31,4 @@ def init_db():
     ''')
 
     conn.commit()
+    conn.close()

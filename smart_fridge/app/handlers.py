@@ -1,4 +1,5 @@
 from app.database import get_db_connection
+from app.mqtt_utils import publish_barcode_response
 import threading
 
 db_lock = threading.Lock()
@@ -15,29 +16,34 @@ def handle_barcode_message(payload: dict) -> str:
     with db_lock:
         conn = get_db_connection()
         cursor = conn.cursor()
-        # Insert product if not exist
-        cursor.execute("SELECT count FROM products WHERE barcode = ?", (code,))
+
+        cursor.execute("SELECT count, name FROM products WHERE barcode = ?", (code,))
         row = cursor.fetchone()
 
-        if row:#if barcode exist
-
+        if row:
             current = row["count"]
+            name = row["name"]
             if action == "add":
                 new_count = current + 1
             elif action == "remove":
-                new_count = max(current - 1, 0)  # تعداد نباید کمتر از 0 بشه
+                new_count = max(current - 1, 0)
             cursor.execute("UPDATE products SET count = ? WHERE barcode = ?", (new_count, code))
-        else:  # اگر بارکد وجود نداشته باشد، رکورد جدید اضافه می‌کنیم
+        else:
+            name = None
             count = 1 if action == "add" else 0
             cursor.execute("INSERT INTO products (barcode, count) VALUES (?, ?)", (code, count))
 
         conn.commit()
         conn.close()
 
+    response_message = name if name else code
+    publish_barcode_response(response_message)
+    print(f"[HANDLER] Published: {response_message}")
+
     return "ok"
 
 def handle_sensor_message(payload: dict) -> str:
-    print("Received sensor payload:", payload)  # برای بررسی داده‌های ورودی
+    print("Received sensor payload:", payload)
     if "temp" not in payload or "humidity" not in payload:
         return "invalid"
 
