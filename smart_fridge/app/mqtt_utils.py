@@ -10,3 +10,11 @@ def publish_barcode_response(message_str):
         hostname=MQTT_BROKER_URL,
         port=MQTT_PORT
     )
+def publish_door_state(payload_dict):
+    print(f"[MQTT PUBLISH] door state: {payload_dict}")
+    publish.single(
+        topic="iot/smart_fridge/door_cmd",
+        payload=json.dumps(payload_dict),
+        hostname=MQTT_BROKER_URL,
+        port=MQTT_PORT
+    )

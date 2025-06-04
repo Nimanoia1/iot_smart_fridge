@@ -168,3 +168,24 @@ window.addEventListener('DOMContentLoaded', () => {
     initSocket();     // Start WebSocket
 });
 
+function toggleDoorOptions() {
+    const options = document.getElementById('door-options');
+    options.style.display = options.style.display === 'none' ? 'block' : 'none';
+}
+
+function sendDoorState(isOpen) {
+    fetch('/door', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ open: isOpen })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("The door" + (isOpen ? "Opened" : "Closed"));
+        document.getElementById('door-options').style.display = 'none';
+    })
+    .catch(err => {
+        console.error("خطا در ارسال وضعیت در:", err);
+        alert("خطا در ارتباط با در!");
+    });
+}
