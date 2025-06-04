@@ -1,0 +1,56 @@
+body {
+    font-family: Arial, sans-serif;
+    direction: rtl;
+    text-align: right;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #2C3E50;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.temperature-box {
+    background-color: #577d96;
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    width: 200px;
+}
+.btn {
+    background-color: #1f446e;
+    color: white;
+    padding: 5px 10px;
+    cursor: pointer;
+    width: 100px;
+}
+table {
+    width: 70%;
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #34495E;
+    color: white;
+}
+
