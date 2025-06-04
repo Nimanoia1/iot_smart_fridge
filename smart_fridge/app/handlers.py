@@ -44,16 +44,17 @@ def handle_barcode_message(payload: dict) -> str:
 
 def handle_sensor_message(payload: dict) -> str:
     print("Received sensor payload:", payload)
-    if "temp" not in payload or "humidity" not in payload:
+    if "temp" not in payload or "humidity" not in payload or "open" not in payload:
         return "invalid"
 
     temp = payload["temp"]
     humidity = payload["humidity"]
+    door_status = "open" if payload["open"] == 1 else "closed"
 
     with db_lock:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO sensor_logs (temp, humidity) VALUES (?, ?)", (temp, humidity))
+        cursor.execute("INSERT INTO sensor_logs (temp, humidity, door_status) VALUES (?, ?, ?)", (temp, humidity, door_status))
         conn.commit()
         conn.close()
 

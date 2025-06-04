@@ -7,18 +7,20 @@ connected_websockets = []
 def get_latest_sensor_data():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT temp, humidity FROM sensor_logs ORDER BY id DESC LIMIT 1")
+    cursor.execute("SELECT temp, humidity, door_status FROM sensor_logs ORDER BY id DESC LIMIT 1")
     row = cursor.fetchone()
     conn.close()
 
     if row:
         return {
             "temperature": row["temp"],
-            "humidity": row["humidity"]
+            "humidity": row["humidity"],
+            "door_status": row["door_status"]
         }
     return {
         "temperature": "No data",
-        "humidity": "No data"
+        "humidity": "No data",
+        "door_status": "No data"
     }
     
 def get_latest_inventory():

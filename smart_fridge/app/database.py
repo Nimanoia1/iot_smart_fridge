@@ -22,13 +22,14 @@ def init_db():
         ''')
 
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sensor_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            temp REAL,
-            humidity REAL
-        )
-    ''')
+            CREATE TABLE IF NOT EXISTS sensor_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                temp REAL,
+                humidity REAL,
+                door_status TEXT 
+            )
+        ''')
 
     conn.commit()
     conn.close()

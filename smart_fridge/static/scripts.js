@@ -7,9 +7,11 @@ function initSocket() {
 
     let tempSpan = document.getElementById('temperature');
     let humiditySpan = document.getElementById('humidity');
+    let doorSpan = document.getElementById('door_status');
 
     tempSpan.textContent = data.temperature + "°C" ?? "-" ;
     humiditySpan.textContent = data.humidity + "%" ?? "-" ;
+    doorSpan.textContent = data.door_status ?? "-" ;
     };
 }
 
