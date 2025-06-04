@@ -99,3 +99,13 @@ async def update_product_name(payload: dict):
         
     await broadcast_inventory()
     return {"status": "ok", "message": "updated name", "oldName": old_name}
+
+@router.post("/door")
+async def door_control(payload: dict):
+    from app.mqtt_utils import publish_door_state
+    state = payload.get("open", None)
+    if state is None:
+        return {"status": "invalid"}
+    
+    publish_door_state({"open": state})
+    return {"status": "ok"}

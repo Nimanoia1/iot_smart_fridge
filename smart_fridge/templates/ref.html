@@ -23,6 +23,13 @@
     <input type="text" id="barcode" placeholder="Enter barcode:" />
     <button onclick="removeItem()" class="btn">remove</button>
 </div>
+<div style="text-align: left; margin: 15px;">
+    <button onclick="toggleDoorOptions()" class="btn">Door</button>
+    <div id="door-options" style="display: none; margin-top: 10px;">
+        <button onclick="sendDoorState(true)" class="btn">Open</button>
+        <button onclick="sendDoorState(false)" class="btn">Close</button>
+    </div>
+</div>
 
 <table id="inventory-table">
     <thead>
