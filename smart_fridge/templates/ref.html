@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="En">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Smart Refrigerator</title>
+    <link rel="stylesheet" href="/static/ref.css?v=12345">
+
+</head>
+
+<body>
+<header>
+    <h1>IoT Smart Refrigerator</h1>
+</header>
+<div class="container">
+    <div class="temperature-box">
+        <h4>temperature: <span id="temperature">-</span></h4>
+        <h4>humidity: <span id="humidity">-</span></h4>
+    </div>
+</div>
+
+<div style="text-align: center; margin: 15px;">
+    <input type="text" id="barcode" placeholder="Enter barcode:" />
+    <button onclick="removeItem()" class="btn">remove</button>
+</div>
+
+<table id="inventory-table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Amount</th>
+            <th>Barcode</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- اطلاعات کالاها در اینجا نمایش داده خواهد شد -->
+    </tbody>
+</table>
+
+<script src="/static/scripts.js"></script>
+
+</body>
+</html>

@@ -1,27 +1,17 @@
-function getTemperature() {
-    fetch('/temperature')
-        .then(response => response.json())
-        .then(data => {
-            // نمایش دما
-            let tempSpan = document.getElementById('temperature');
-            if (data.temperature === "No data") {
-                tempSpan.textContent = "داده موجود نیست";
-            } else {
-                tempSpan.textContent = data.temperature + ' °C';
-            }
+function initSocket() {
+  const socket = new WebSocket("ws://localhost:8000/ws/env");
 
-            // نمایش رطوبت
-            let humiditySpan = document.getElementById('humidity');
-            if (data.humidity === "No data") {
-                humiditySpan.textContent = "داده موجود نیست";
-            } else {
-                humiditySpan.textContent =  ' %' + data.humidity;
-            }
-        })
-        .catch(error => console.error('خطا در دریافت دما و رطوبت:', error));
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    let tempSpan = document.getElementById('temperature');
+    let humiditySpan = document.getElementById('humidity');
+
+    tempSpan.textContent = data.temperature + "°C" ?? "-" ;
+    humiditySpan.textContent = data.humidity + "%" ?? "-" ;
+    };
 }
-
-
 
 // تابع گرفتن موجودی و نمایش در جدول
 function getInventory() {
@@ -171,14 +161,8 @@ function removeItem() {
 
 
 
+window.addEventListener('DOMContentLoaded', () => {
+    getInventory();  // Fetch temperature & inventory once
+    initSocket();     // Start WebSocket
+});
 
-// آپدیت داده‌ها به صورت دستی (مثلاً با دکمه)
-function manualUpdate() {
-    getTemperature();
-    getInventory();
-}
-
-// فراخوانی آپدیت اولیه هنگام بارگذاری صفحه
-window.onload = () => {
-    manualUpdate();
-};

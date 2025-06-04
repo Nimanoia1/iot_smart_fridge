@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from app.database import get_db_connection
 from app.handlers import db_lock
+from app.websocket import broadcast_inventory
 
 router = APIRouter()
 
@@ -11,22 +12,7 @@ async def root():
 # @router.get("/health")
 # async def health():
 #     return {"status": "ok"}
-# Endpoint برای گرفتن دمای یخچال از دیتابیس
-@router.get("/temperature")
-async def get_temperature():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT temp, humidity FROM sensor_logs ORDER BY timestamp DESC LIMIT 1")
-    row = cursor.fetchone()
-    conn.close()
 
-    if row:
-        return {"temperature": row["temp"], "humidity": row["humidity"]}
-    else:
-        return {"temperature": "No data", "humidity": "No data"}
- 
-
-# Endpoint برای دریافت موجودی کالاها
 @router.get("/inventory")
 async def get_inventory():
     conn = get_db_connection()
@@ -77,6 +63,9 @@ async def remove_item(payload: dict):
         else:
             conn.close()
             return {"status": "not_found", "message": "not found!"}
+    
+    await broadcast_inventory() 
+    return {"status": "ok", "message": "inventory updated."}
 
  
  
@@ -107,5 +96,6 @@ async def update_product_name(payload: dict):
         conn.commit() #ذخیره‌سازی تغییرات در فایل دیتابیس
         print(f"Updated {barcode} to new name: {new_name}")
         conn.close()
-
-    return {"status": "ok", "message": "نام محصول به‌روزرسانی شد.", "oldName": old_name}
+        
+    await broadcast_inventory()
+    return {"status": "ok", "message": "updated name", "oldName": old_name}
