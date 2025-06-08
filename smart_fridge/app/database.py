@@ -30,12 +30,6 @@ def init_db():
                 door_status TEXT 
             )
         ''')
-        try:
-            cursor.execute("ALTER TABLE products ADD COLUMN min_limit INTEGER DEFAULT 0")
-        except sqlite3.OperationalError:    
-         # ستون قبلاً وجود داشته
-             pass
-            
-            
-        conn.commit()
+
+    conn.commit()
     conn.close()

@@ -18,11 +18,3 @@ def publish_door_state(payload_dict):
         hostname=MQTT_BROKER_URL,
         port=MQTT_PORT
     )
-def publish_wifi_config(payload_dict):
-    print(f"[MQTT PUBLISH] wifi config: {payload_dict}")
-    publish.single(
-        topic="iot/smart_fridge/wifi_cred",
-        payload=json.dumps(payload_dict),
-        hostname=MQTT_BROKER_URL,
-        port=MQTT_PORT
-    )
