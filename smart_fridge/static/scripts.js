@@ -204,13 +204,10 @@ function removeItem() {
     .then(data => {
         if (data.status === "ok") {
             alert("removed successfully!");
-<<<<<<< Updated upstream
             getInventory();  // بروزرسانی جدول
-=======
             if (data.alert) {
                 alert("⚠️ موجودی این کالا در حال اتمام است!");
             }  
->>>>>>> Stashed changes
         } 
         else if (data.status === "not_allowed") {
             alert(data.message || "این کالا موجودی نداره.");
@@ -231,14 +228,6 @@ function removeItem() {
         alert("Error!");
     });
 }
-
-
-
-<<<<<<< Updated upstream
-window.addEventListener('DOMContentLoaded', () => {
-    getInventory();  // Fetch temperature & inventory once
-    initSocket();     // Start WebSocket
-});
 
 function toggleDoorOptions() {
     const options = document.getElementById('door-options');
@@ -261,7 +250,7 @@ function sendDoorState(isOpen) {
         alert("خطا در ارتباط با در!");
     });
 }
-=======
+
 function sendWifiConfig() {
     const ssid = document.getElementById('wifi-ssid').value;
     const password = document.getElementById('wifi-password').value;
@@ -322,4 +311,3 @@ window.onload = () => {
   // Check after a short delay so sockets have time to connect
   setTimeout(checkSockets, 1500);
 };
->>>>>>> Stashed changes
