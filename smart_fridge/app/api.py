@@ -58,8 +58,6 @@ async def remove_item(payload: dict):
                 cursor.execute("DELETE FROM products WHERE barcode = ?", (code,))
 
             conn.commit()
-<<<<<<< Updated upstream
-=======
 
             # بررسی هشدار بعد از commit
             cursor.execute("SELECT name, count, min_limit FROM products WHERE barcode = ?", (code,))
@@ -68,7 +66,6 @@ async def remove_item(payload: dict):
             if row and row["count"] <= row["min_limit"]:
                 alert_flag = True
 
->>>>>>> Stashed changes
             conn.close()
             return {"status": "ok", "message": "product removed successfully!"}
         else:
