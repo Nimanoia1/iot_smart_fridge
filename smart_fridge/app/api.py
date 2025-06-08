@@ -68,6 +68,7 @@ async def remove_item(payload: dict):
             if row and row["count"] <= row["min_limit"]:
                 alert_flag = True
 
+>>>>>>> Stashed changes
             conn.close()
             return {"status": "ok", "message": "product removed successfully!"}
         else:
