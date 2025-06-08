@@ -2,8 +2,10 @@ from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
 from app.database import get_db_connection
 
-connected_websockets = []
+env_sockets = []
+inventory_sockets = []
 
+# Sensor data fetching
 def get_latest_sensor_data():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -22,7 +24,8 @@ def get_latest_sensor_data():
         "humidity": "No data",
         "door_status": "No data"
     }
-    
+
+# Inventory data fetching
 def get_latest_inventory():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -35,32 +38,60 @@ def get_latest_inventory():
             {"name": row["name"], "quantity": row["count"], "barcode": row["barcode"]}
             for row in rows
         ]
-}
+    }
 
-async def websocket_handler(websocket: WebSocket):
+# Periodically push env data
+async def env_socket_handler(websocket: WebSocket):
     await websocket.accept()
-    connected_websockets.append(websocket)
+    env_sockets.append(websocket)
     try:
-        while True:          
+        while True:
             data = get_latest_sensor_data()
             await websocket.send_json(data)
-            await asyncio.sleep(5)  
+            print(f"[WS] Sending sensor data: {data}")
+            await asyncio.sleep(5)
     except WebSocketDisconnect:
-        connected_websockets.remove(websocket)
+        env_sockets.remove(websocket)
+
+async def inventory_socket_handler(websocket: WebSocket):
+    await websocket.accept()
+    inventory_sockets.append(websocket)
+    try:
+        while True:
+            await websocket.receive_text()  
+    except WebSocketDisconnect:
+        inventory_sockets.remove(websocket)
+
 
 async def broadcast_inventory():
     data = get_latest_inventory()
-    for ws in connected_websockets:
+    print(f"[WS] Broadcasting inventory update: {data}")
+    print(f"[WS] Inventory sockets count: {len(inventory_sockets)}")
+    for ws in inventory_sockets.copy():
         try:
             await ws.send_json(data)
         except Exception as e:
             print(f"[WS] Error sending inventory update: {e}")
+            inventory_sockets.remove(ws)
 
 
-def setup_websocket_routes(app):
-    print("[WS] Setting up WebSocket route")
-
+# Setup routes
+def setup_websocket_env(app):
     @app.websocket("/ws/env")
     async def env_websocket(websocket: WebSocket):
-        print("[WS] /ws/env endpoint hit")
-        await websocket_handler(websocket)
+        print("[WS] /ws/env connected")
+        await env_socket_handler(websocket)
+
+def setup_websocket_inventory(app):
+    @app.websocket("/ws/inventory")
+    async def inventory_websocket(websocket: WebSocket):
+        print("[WS] /ws/inventory connected")
+        await inventory_socket_handler(websocket)
+
+
+def setup_test_websocket(app):
+    @app.websocket("/ws/test")
+    async def test_websocket(websocket: WebSocket):
+        await websocket.accept()
+        await websocket.send_text("Hello from test websocket!")
+        await websocket.close()

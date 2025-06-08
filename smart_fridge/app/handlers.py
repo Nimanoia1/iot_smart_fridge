@@ -38,8 +38,15 @@ def handle_barcode_message(payload: dict) -> str:
 
     response_message = name if name else code
     publish_barcode_response(response_message)
-    print(f"[HANDLER] Published: {response_message}")
-
+    from app.mqtt_client import global_loop
+    from app.websocket import broadcast_inventory
+    import asyncio
+    
+    if global_loop:
+        asyncio.run_coroutine_threadsafe(broadcast_inventory(), global_loop)
+        print("[HANDLER] Scheduled broadcast_inventory in main loop")
+    else:
+        print("[HANDLER] No event loop available!")
     return "ok"
 
 def handle_sensor_message(payload: dict) -> str:
@@ -49,7 +56,7 @@ def handle_sensor_message(payload: dict) -> str:
 
     temp = payload["temp"]
     humidity = payload["humidity"]
-    door_status = "open" if payload["open"] == 1 else "closed"
+    door_status = "open" if payload["open"] == "1" else "closed"
 
     with db_lock:
         conn = get_db_connection()

@@ -1,19 +1,84 @@
-function initSocket() {
-  const socket = new WebSocket("ws://localhost:8000/ws/env");
+// Declare sockets globally
+let testSocket, inventorySocket, envSocket;
 
+function initEnvSocket() {
+  envSocket = new WebSocket("ws://localhost:8000/ws/env");
 
-  socket.onmessage = (event) => {
+  envSocket.onopen = () => {
+    console.log("[WS] Connected to /ws/env");
+  };
+
+  envSocket.onmessage = (event) => {
     const data = JSON.parse(event.data);
 
     let tempSpan = document.getElementById('temperature');
     let humiditySpan = document.getElementById('humidity');
     let doorSpan = document.getElementById('door_status');
 
-    tempSpan.textContent = data.temperature + "°C" ?? "-" ;
-    humiditySpan.textContent = data.humidity + "%" ?? "-" ;
-    doorSpan.textContent = data.door_status ?? "-" ;
+    tempSpan.textContent = (data.temperature != null ? data.temperature + "°C" : "-");
+    humiditySpan.textContent = (data.humidity != null ? data.humidity + "%" : "-");
+    doorSpan.textContent = data.door_status ?? "-";
+  };
+}
+
+function initInventorySocket() {
+  inventorySocket = new WebSocket("ws://localhost:8000/ws/inventory");
+
+  inventorySocket.onopen = () => {
+    console.log("[WS] Connected to /ws/inventory");
+  };
+
+  inventorySocket.onerror = (event) => {
+    console.error("[WS] WebSocket error on /ws/inventory", event);
+  };
+
+  inventorySocket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.type === "inventory_update") {
+      updateInventoryTable(data.items);
+    }
+  };
+}
+
+function updateInventoryTable(items) {
+  const tbody = document.querySelector("#inventory-table tbody");  // fix ID here
+  tbody.innerHTML = ""; // Clear old rows
+
+  items.forEach(item => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+        <td class="editable" data-barcode="${item.barcode}">${item.name || "no name"}</td>
+        <td>${item.quantity}</td>
+        <td>${item.barcode}</td>
+    `;
+
+    tbody.appendChild(row);
+  });
+}
+
+
+function initTestSocket() {
+    const socket = new WebSocket("ws://localhost:8000/ws/test");
+
+    socket.onopen = () => {
+        console.log("[TEST WS] Connected to /ws/test");
+    };
+
+    socket.onmessage = (event) => {
+        console.log("[TEST WS] Message received:", event.data);
+    };
+
+    socket.onclose = () => {
+        console.log("[TEST WS] Connection closed");
+    };
+
+    socket.onerror = (error) => {
+        console.error("[TEST WS] Error:", error);
     };
 }
+
 
 // تابع گرفتن موجودی و نمایش در جدول
 function getInventory() {
@@ -139,7 +204,13 @@ function removeItem() {
     .then(data => {
         if (data.status === "ok") {
             alert("removed successfully!");
+<<<<<<< Updated upstream
             getInventory();  // بروزرسانی جدول
+=======
+            if (data.alert) {
+                alert("⚠️ موجودی این کالا در حال اتمام است!");
+            }  
+>>>>>>> Stashed changes
         } 
         else if (data.status === "not_allowed") {
             alert(data.message || "این کالا موجودی نداره.");
@@ -163,6 +234,7 @@ function removeItem() {
 
 
 
+<<<<<<< Updated upstream
 window.addEventListener('DOMContentLoaded', () => {
     getInventory();  // Fetch temperature & inventory once
     initSocket();     // Start WebSocket
@@ -189,3 +261,65 @@ function sendDoorState(isOpen) {
         alert("خطا در ارتباط با در!");
     });
 }
+=======
+function sendWifiConfig() {
+    const ssid = document.getElementById('wifi-ssid').value;
+    const password = document.getElementById('wifi-password').value;
+
+    if (!ssid || !password) {
+        alert("Please Enter Username/Password");
+        return;
+    }
+
+    fetch('/wifi', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ wifi_ssid: ssid, wifi_password: password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        closeWifiModal();
+        alert("Wi-Fi Connected");
+    })
+    .catch(err => {
+        console.error("خطا در ارسال Wi-Fi:", err);
+        alert("خطا در ارسال!");
+    });
+}
+// تابع بستن پنجره وای‌فای (modal)
+function closeWifiModal() {
+    document.getElementById("wifi-modal").style.display = "none";
+}
+
+function checkSockets() {
+  function status(socket, name) {
+    if (!socket) {
+      console.log(`${name} socket does NOT exist`);
+    } else {
+      let state;
+      switch(socket.readyState) {
+        case 0: state = "CONNECTING"; break;
+        case 1: state = "OPEN"; break;
+        case 2: state = "CLOSING"; break;
+        case 3: state = "CLOSED"; break;
+        default: state = "UNKNOWN";
+      }
+      console.log(`${name} socket exists, state: ${state}`);
+    }
+  }
+
+  status(testSocket, "Test");
+  status(inventorySocket, "Inventory");
+  status(envSocket, "Env");
+}
+
+window.onload = () => {
+  getInventory();
+  initTestSocket();
+  initInventorySocket();
+  initEnvSocket();
+
+  // Check after a short delay so sockets have time to connect
+  setTimeout(checkSockets, 1500);
+};
+>>>>>>> Stashed changes

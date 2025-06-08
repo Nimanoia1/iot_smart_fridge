@@ -1,8 +1,11 @@
 import json
 import threading
 import paho.mqtt.client as mqtt
+import asyncio
 from app.config import MQTT_BROKER_URL, MQTT_PORT
 from app.handlers import handle_barcode_message, handle_sensor_message
+
+global_loop = None
 
 def on_connect(client, userdata, flags, rc):
     print("[MQTT] Connected with result code", rc)
@@ -22,7 +25,9 @@ def on_message(client, userdata, msg):
     except json.JSONDecodeError:
         print(f"[MQTT] Invalid JSON on {msg.topic}")
 
-def start_mqtt():
+def start_mqtt(loop):
+    global global_loop
+    global_loop = loop
     client = mqtt.Client()
     client.on_connect = on_connect
     client.on_message = on_message
