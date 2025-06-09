@@ -18,11 +18,11 @@
 <!-- منوی کشویی (سایدبار) -->
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
-    <span>setting</span>
+    <span>Settings</span>
   </div>
   <ul class="sidebar-menu">
-    <li onclick="openWifiModal()">Wi-Fi</li>
-    <!-- می‌تونی آیتم‌های بیشتری اضافه کنی -->
+    <li onclick="openWifiModal()">Device Wi-Fi Credentials</li>
+    <li onclick="openDoorModal()">Door Control</li>
   </ul>
 </div>
 
@@ -38,6 +38,15 @@
     </div>
   </div>
 
+   <!-- Modal کنترل در -->
+  <div id="door-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-close" onclick="closeDoorModal()">×</div>
+      <p id="door-state-text">وضعیت در در حال بررسی...</p>
+      <button id="door-action-btn" class="btn" onclick="handleDoorAction()">...</button>
+    </div>
+  </div>
+
 <div class="container">
     <div class="temperature-box">
         <h4>Temperature: <span id="temperature">-</span></h4>
@@ -46,19 +55,12 @@
     </div>
 </div>
 
+<!-- remove button-->
 <div class="header-buttons">
     <button class="door-btn" onclick="fetchAndShowDoorModal()">
         <img src="/static/icons/fridge-icon.png" alt="fridge icon" />
     </button>
   </div>
-  
-  <!-- Modal کنترل در -->
-  <div id="door-modal" class="modal">
-    <div class="modal-content">
-      <p id="door-state-text">وضعیت در در حال بررسی...</p>
-      <button id="door-action-btn" class="btn" onclick="handleDoorAction()">...</button>
-    </div>
-</div>
 
 <div style="text-align: center; margin: 15px;">
     <input type="text" id="barcode" placeholder="Enter barcode:" />

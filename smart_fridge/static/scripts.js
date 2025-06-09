@@ -218,31 +218,37 @@ function closeWifiModal() {
     document.getElementById("wifi-modal").style.display = "none";
 }
 
-let currentDoorOpen = null;  // نگهدارنده وضعیت فعلی در
 
-function fetchAndShowDoorModal() {
+function openDoorModal() {
     fetch("/door_status")
         .then(res => res.json())
-        .then(data => {
-            currentDoorOpen = data.open;
+        .then(data => {;
+            let doorSpan = document.getElementById('door_status');
             const modal = document.getElementById("door-modal");
             const text = document.getElementById("door-state-text");
             const btn = document.getElementById("door-action-btn");
 
             modal.style.display = "block";
 
-            if (currentDoorOpen) {
-                text.textContent = "The door is open";
-                btn.textContent = "Closing the door";
+            if (doorSpan.textContent === "open") {
+                text.textContent = "The Door is Open";
+                btn.textContent = "Close the Door";
+            } else if (doorSpan.textContent === "close") {
+                text.textContent = "The Door is Closed";
+                btn.textContent = "Open the Door";
             } else {
-                text.textContent = "The door is close";
-                btn.textContent = "Opening the door";
+                text.textContent = "Unknown Door Status";
+                btn.textContent = "Try Again";
             }
         })
         .catch(err => {
             alert("خطا در دریافت وضعیت در");
             console.error(err);
         });
+}
+
+function closeDoorModal() {
+    document.getElementById("door-modal").style.display = "none";
 }
 
 function handleDoorAction() {
