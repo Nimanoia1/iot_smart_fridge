@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from app.database import get_db_connection
 from app.handlers import db_lock
 from app.websocket import broadcast_inventory
@@ -54,8 +54,6 @@ async def remove_item(payload: dict):
 
             if count > 1:
                 cursor.execute("UPDATE products SET count = count - 1 WHERE barcode = ?", (code,))
-            else:
-                cursor.execute("DELETE FROM products WHERE barcode = ?", (code,))
 
             conn.commit()
 
@@ -111,9 +109,23 @@ async def update_product_name(payload: dict):
 @router.post("/door")
 async def door_control(payload: dict):
     from app.mqtt_utils import publish_door_state
-    state = payload.get("open", None)
+    state = payload.get("open")
+    
     if state is None:
         return {"status": "invalid"}
     
     publish_door_state({"open": state})
+    return {"status": "ok"}
+
+@router.post("/wifi")
+async def update_wifi(payload: dict):
+    from app.mqtt_utils import publish_wifi_config
+    ssid = payload.get("ssid")
+    password = payload.get("password")
+
+    if not ssid or not password:
+        return {"status": "invalid"}
+
+    print(f"[API] New Wi-Fi recieved : SSID={ssid}, PASS={password}")
+    publish_wifi_config({"ssid": ssid, "password": password})
     return {"status": "ok"}

@@ -65,6 +65,8 @@ function getInventory() {
             tableBody.innerHTML = '';
 
             data.items.forEach(item => {
+                if (item.quantity <= 0) return;
+
                 let row = document.createElement('tr');
 
                 // نام محصول رو داخل یک td که کلیک‌پذیر است
@@ -181,27 +183,11 @@ function removeItem() {
     });
 }
 
-function toggleDoorOptions() {
-    const options = document.getElementById('door-options');
-    options.style.display = options.style.display === 'none' ? 'block' : 'none';
+function openWifiModal() {
+    document.getElementById("wifi-modal").style.display = "block";
+    toggleSidebar(); // وقتی وای‌فای باز میشه منو هم بسته شه
 }
 
-function sendDoorState(isOpen) {
-    fetch('/door', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ open: isOpen })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert("The door" + (isOpen ? "Opened" : "Closed"));
-        document.getElementById('door-options').style.display = 'none';
-    })
-    .catch(err => {
-        console.error("خطا در ارسال وضعیت در:", err);
-        alert("خطا در ارتباط با در!");
-    });
-}
 
 function sendWifiConfig() {
     const ssid = document.getElementById('wifi-ssid').value;
@@ -232,11 +218,65 @@ function closeWifiModal() {
     document.getElementById("wifi-modal").style.display = "none";
 }
 
+let currentDoorOpen = null;  // نگهدارنده وضعیت فعلی در
+
+function fetchAndShowDoorModal() {
+    fetch("/door_status")
+        .then(res => res.json())
+        .then(data => {
+            currentDoorOpen = data.open;
+            const modal = document.getElementById("door-modal");
+            const text = document.getElementById("door-state-text");
+            const btn = document.getElementById("door-action-btn");
+
+            modal.style.display = "block";
+
+            if (currentDoorOpen) {
+                text.textContent = "The door is open";
+                btn.textContent = "Closing the door";
+            } else {
+                text.textContent = "The door is close";
+                btn.textContent = "Opening the door";
+            }
+        })
+        .catch(err => {
+            alert("خطا در دریافت وضعیت در");
+            console.error(err);
+        });
+}
+
+function handleDoorAction() {
+    const desiredState = !currentDoorOpen;
+
+    fetch("/door", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ open: desiredState })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("Door" + (desiredState ? " Opened" : " Closed"));
+        document.getElementById("door-modal").style.display = "none";
+    })
+    .catch(err => {
+        alert("خطا در تغییر وضعیت در");
+        console.error(err);
+    });
+}
+
+function toggleMenu() {
+    const menu = document.getElementById("dropdown-menu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+// تابع باز و بسته کردن منوی کناری با کلیک روی آیکن همبرگری
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("open");
+}
+
 window.onload = () => {
   getInventory();
   initInventorySocket();
   initEnvSocket();
-
-  // Check after a short delay so sockets have time to connect
-  setTimeout(checkSockets, 1500);
 };
