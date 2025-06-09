@@ -1,10 +1,12 @@
 from app.database import get_db_connection
 from app.mqtt_utils import publish_barcode_response
+from app.websocket import broadcast_inventory
 import threading
+import asyncio
 
 db_lock = threading.Lock()
 
-def handle_barcode_message(payload: dict) -> str:
+def handle_barcode_message(payload: dict,global_loop) -> str:
     if "code" not in payload or "action" not in payload:
         return "invalid"
 
@@ -37,10 +39,7 @@ def handle_barcode_message(payload: dict) -> str:
         conn.close()
 
     response_message = name if name else code
-    publish_barcode_response(response_message)
-    from app.mqtt_client import global_loop
-    from app.websocket import broadcast_inventory
-    import asyncio
+    publish_barcode_response(response_message)  
     
     if global_loop:
         asyncio.run_coroutine_threadsafe(broadcast_inventory(), global_loop)

@@ -1,7 +1,6 @@
 import json
 import threading
 import paho.mqtt.client as mqtt
-import asyncio
 from app.config import MQTT_BROKER_URL, MQTT_PORT
 from app.handlers import handle_barcode_message, handle_sensor_message
 
@@ -18,7 +17,7 @@ def on_message(client, userdata, msg):
         topic = msg.topic
 
         if topic == "iot/smart_fridge/barcode":
-            handle_barcode_message(payload)
+            handle_barcode_message(payload,global_loop)
         elif topic == "iot/smart_fridge/sensors":
             handle_sensor_message(payload)
 

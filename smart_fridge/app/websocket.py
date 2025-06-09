@@ -48,7 +48,6 @@ async def env_socket_handler(websocket: WebSocket):
         while True:
             data = get_latest_sensor_data()
             await websocket.send_json(data)
-            print(f"[WS] Sending sensor data: {data}")
             await asyncio.sleep(5)
     except WebSocketDisconnect:
         env_sockets.remove(websocket)
@@ -65,8 +64,6 @@ async def inventory_socket_handler(websocket: WebSocket):
 
 async def broadcast_inventory():
     data = get_latest_inventory()
-    print(f"[WS] Broadcasting inventory update: {data}")
-    print(f"[WS] Inventory sockets count: {len(inventory_sockets)}")
     for ws in inventory_sockets.copy():
         try:
             await ws.send_json(data)
