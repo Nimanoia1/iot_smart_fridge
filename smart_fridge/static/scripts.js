@@ -245,6 +245,7 @@ function openDoorModal() {
             alert("خطا در دریافت وضعیت در");
             console.error(err);
         });
+    toggleSidebar();
 }
 
 function closeDoorModal() {
