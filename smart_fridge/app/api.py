@@ -17,14 +17,14 @@ async def root():
 async def get_inventory():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT name, count, barcode FROM products")
+    cursor.execute("SELECT name, count, barcode, min_limit FROM products")
     rows = cursor.fetchall()
     conn.close()
 
-    inventory = [{"name": row["name"], "quantity": row["count"], "barcode": row["barcode"]} for row in rows]
+    inventory = [{"name": row["name"], "quantity": row["count"], "barcode": row["barcode"], "limit": row["min_limit"]} for row in rows]
     return {"items": inventory}
 
-@router.post("/removeItem")
+@router.post("/updateItem")
 async def remove_item(payload: dict):
     print("Received remove request payload:", payload)
 
@@ -33,9 +33,6 @@ async def remove_item(payload: dict):
 
     code = payload["barcode"]
     action = payload["action"]
-
-    if action != "remove":
-        return {"status": "unknown_action"}
 
     with db_lock:
         conn = get_db_connection()
@@ -48,24 +45,32 @@ async def remove_item(payload: dict):
             count = row["count"]
             print(f"Current count: {count}")
 
-            if count is None or count <= 0:
+            if action == "remove":
+                if count is None or count <= 0:
+                    conn.close()
+                    return {"status": "not_allowed", "message": "item count is already zero!"}
+
+                if count > 1:
+                    cursor.execute("UPDATE products SET count = count - 1 WHERE barcode = ?", (code,))
+
+                conn.commit()
+
+                # # بررسی هشدار بعد از commit
+                # cursor.execute("SELECT name, count, min_limit FROM products WHERE barcode = ?", (code,))
+                # row = cursor.fetchone()
+                # alert_flag = False
+                # if row and row["count"] <= row["min_limit"]:
+                #     alert_flag = True
+
                 conn.close()
-                return {"status": "not_allowed", "message": "item count is already zero!"}
-
-            if count > 1:
-                cursor.execute("UPDATE products SET count = count - 1 WHERE barcode = ?", (code,))
-
-            conn.commit()
-
-            # بررسی هشدار بعد از commit
-            cursor.execute("SELECT name, count, min_limit FROM products WHERE barcode = ?", (code,))
-            row = cursor.fetchone()
-            alert_flag = False
-            if row and row["count"] <= row["min_limit"]:
-                alert_flag = True
-
-            conn.close()
-            return {"status": "ok", "message": "product removed successfully!"}
+                return {"status": "ok", "message": "product removed successfully!"}
+            
+            if action == "add":
+                cursor.execute("UPDATE products SET count = count + 1 WHERE barcode = ?", (code,))
+                conn.commit()
+                
+                conn.close()
+                return {"status": "ok", "message": "product added successfully!"}
         else:
             conn.close()
             return {"status": "not_found", "message": "not found!"}
@@ -105,6 +110,29 @@ async def update_product_name(payload: dict):
         
     await broadcast_inventory()
     return {"status": "ok", "message": "updated name", "oldName": old_name}
+
+@router.post("/updateProductLimit")
+async def update_product_name(payload: dict):
+    if "barcode" not in payload or "limit" not in payload:
+        return {"status": "invalid", "message": "بارکد یا نام محصول ارسال نشده است."}
+
+    barcode = payload["barcode"]
+    new_limit = payload["limit"]
+
+    if not new_limit:
+        return {"status": "invalid", "message": "null value"}
+
+    with db_lock:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE products SET min_limit = ? WHERE barcode = ?", (new_limit, barcode))
+        conn.commit() #ذخیره‌سازی تغییرات در فایل دیتابیس
+        print(f"Updated {barcode} to new min_limit: {new_limit}")
+        conn.close()
+        
+    await broadcast_inventory()
+    return {"status": "ok", "message": "updated limit"}
 
 @router.post("/door")
 async def door_control(payload: dict):

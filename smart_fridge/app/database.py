@@ -17,7 +17,8 @@ def init_db():
             CREATE TABLE IF NOT EXISTS products (
                 barcode TEXT PRIMARY KEY,
                 name TEXT,
-                count INTEGER DEFAULT 0
+                count INTEGER DEFAULT 0,
+                min_limit INTEGER
             )
         ''')
 
@@ -30,6 +31,6 @@ def init_db():
                 door_status TEXT 
             )
         ''')
-
+            
+            
     conn.commit()
-    conn.close()

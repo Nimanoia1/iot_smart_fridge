@@ -42,7 +42,7 @@
   <div id="door-modal" class="modal">
     <div class="modal-content">
       <div class="modal-close" onclick="closeDoorModal()">×</div>
-      <p id="door-state-text">وضعیت در در حال بررسی...</p>
+      <h3 id="door-state-text">وضعیت در در حال بررسی...</h3>
       <button id="door-action-btn" class="btn" onclick="handleDoorAction()">...</button>
     </div>
   </div>
@@ -72,15 +72,35 @@
     <thead>
         <tr>
             <th>Product</th>
+            <th>Min Limit</th>
             <th>Amount</th>
             <th>Barcode</th>
         </tr>
     </thead>
     <tbody>
-        <!-- اطلاعات کالاها در اینجا نمایش داده خواهد شد -->
+        <!-- data -->
     </tbody>
 </table>
+<!---->
+<div id="contextMenu" class="context-menu" style="display:none; position:absolute;">
+  <ul>
+    <li id="addRow">Add</li>
+    <li id="removeRow">Remove</li>
+    <li id="setLimit">Set Limit</li>
+  </ul>
+</div>
 
+<div id="limitModal" class="modal-limit" style="display:none;">
+  <div class="modal-content">
+    <h3 for="limitInput">Set Limit</h3>
+    <input type="number" id="limitInput" min="0" step="1" />
+    <div class="modal-buttons">
+      <button id="limitCancel" class="btn">Cancel</button>
+      <button id="limitOk" class="btn">OK</button>
+    </div>
+  </div>
+</div>
+<!---->
 <script src="/static/scripts.js"></script>
 
 </body>

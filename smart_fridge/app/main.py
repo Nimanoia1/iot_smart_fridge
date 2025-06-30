@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from app.api import router
 from app.mqtt_client import start_mqtt
 from app.database import init_db
-from app.websocket import setup_websocket_env, setup_websocket_inventory, setup_test_websocket
+from app.websocket import setup_websocket_env, setup_websocket_inventory
 import asyncio
 
 loop = asyncio.get_event_loop()
@@ -26,4 +26,3 @@ init_db()
 start_mqtt(loop)
 setup_websocket_inventory(app)
 setup_websocket_env(app)
-setup_test_websocket(app)

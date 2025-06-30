@@ -12,6 +12,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("iot/smart_fridge/sensors")
 
 def on_message(client, userdata, msg):
+    print("[MQTT] msg rcv")
     try:
         payload = json.loads(msg.payload.decode())
         topic = msg.topic
@@ -31,7 +32,6 @@ def start_mqtt(loop):
     client.on_connect = on_connect
     client.on_message = on_message
     client.connect(MQTT_BROKER_URL, MQTT_PORT, 60)
-
     thread = threading.Thread(target=client.loop_forever)
     thread.daemon = True
     thread.start()

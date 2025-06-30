@@ -29,14 +29,13 @@ def get_latest_sensor_data():
 def get_latest_inventory():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT name, count, barcode FROM products")
+    cursor.execute("SELECT name, count, barcode, min_limit FROM products")
     rows = cursor.fetchall()
     conn.close()
     return {
         "type": "inventory_update",
         "items": [
-            {"name": row["name"], "quantity": row["count"], "barcode": row["barcode"]}
-            for row in rows
+            {"name": row["name"], "quantity": row["count"], "barcode": row["barcode"], "limit": row["min_limit"]} for row in rows
         ]
     }
 
@@ -85,10 +84,3 @@ def setup_websocket_inventory(app):
         print("[WS] /ws/inventory connected")
         await inventory_socket_handler(websocket)
 
-
-def setup_test_websocket(app):
-    @app.websocket("/ws/test")
-    async def test_websocket(websocket: WebSocket):
-        await websocket.accept()
-        await websocket.send_text("Hello from test websocket!")
-        await websocket.close()

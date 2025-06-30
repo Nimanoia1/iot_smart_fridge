@@ -47,7 +47,7 @@ function updateInventoryTable(items) {
 
     row.innerHTML = `
         <td class="editable" data-barcode="${item.barcode}">${item.name || "no name"}</td>
-        <td>${item.quantity}</td>
+        <td background-color: #d55353>${item.quantity}</td>
         <td>${item.barcode}</td>
     `;
 
@@ -65,16 +65,25 @@ function getInventory() {
             tableBody.innerHTML = '';
 
             data.items.forEach(item => {
-                if (item.quantity <= 0) return;
+                //if (item.quantity <= 0) return;
 
                 let row = document.createElement('tr');
-
-                // نام محصول رو داخل یک td که کلیک‌پذیر است
-                row.innerHTML = `
-                    <td class="editable" data-barcode="${item.barcode}">${item.name || "no name"}</td>
+                if(item.limit && item.limit > item.quantity){
+                    row.innerHTML = `
+                    <td style="background-color:#f08784;" class="editable" data-barcode="${item.barcode}">${item.name || "no name"}</td>                  
+                    <td style="background-color:#f08784;" >${item.limit || "❌"}</td>
+                    <td style="background-color:#f08784;" >${item.quantity}</td>
+                    <td style="background-color:#f08784;">${item.barcode}</td>
+                `;
+                }
+                else{
+                    row.innerHTML = `
+                    <td class="editable" data-barcode="${item.barcode}">${item.name || "no name"}</td>                  
+                    <td>${item.limit || "❌"}</td>
                     <td>${item.quantity}</td>
                     <td>${item.barcode}</td>
                 `;
+                }
 
                 tableBody.appendChild(row);
             });
@@ -138,26 +147,17 @@ function updateProductName(barcode, newName, td) {
     });
 }
 
-function removeItem() {
-    const barcode = document.getElementById('barcode').value.trim();  // حذف فاصله اضافی
-    console.log(JSON.stringify({ 'barcode': barcode, action: 'remove' }));
-
-    if (!barcode) {
-        alert("Please Enter barcode!");
-        return;
-    }
-
-    fetch('/removeItem', {
+function updateItem(barcode, action) {
+    fetch('/updateItem', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 'barcode': barcode, action: 'remove' })
+        body: JSON.stringify({ 'barcode': barcode, 'action': action })
     })
     .then(response => response.json())
     .then(data => {
         if (data.status === "ok") {
-            alert("removed successfully!");
             getInventory();  // بروزرسانی جدول
             if (data.alert) {
                 alert("⚠️ موجودی این کالا در حال اتمام است!");
@@ -178,8 +178,34 @@ function removeItem() {
     }
     )
     .catch(error => {
-        console.error('Error deleting product:', error);
+        console.error('Error Updating product:', error);
         alert("Error!");
+    });
+}
+
+function updateLimit(barcode, limit) {
+    fetch('/updateProductLimit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 'barcode': barcode, 'limit': limit })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "ok") {
+            getInventory();  // بروزرسانی جدول
+            if (data.alert) {
+                alert("⚠️ موجودی این کالا در حال اتمام است!");
+            }  
+        }
+        else {
+            console.log("Response data:", data);                    
+        }
+    }
+    )
+    .catch(error => {
+        console.error('Error Updating product:', error);
     });
 }
 
@@ -219,32 +245,25 @@ function closeWifiModal() {
 }
 
 
-function openDoorModal() {
-    fetch("/door_status")
-        .then(res => res.json())
-        .then(data => {;
-            let doorSpan = document.getElementById('door_status');
-            const modal = document.getElementById("door-modal");
-            const text = document.getElementById("door-state-text");
-            const btn = document.getElementById("door-action-btn");
+function openDoorModal() { 
+    let doorSpan = document.getElementById('door_status');
+    const modal = document.getElementById("door-modal");
+    const text = document.getElementById("door-state-text");
+    const btn = document.getElementById("door-action-btn");
 
-            modal.style.display = "block";
+    modal.style.display = "block";
 
-            if (doorSpan.textContent === "open") {
-                text.textContent = "The Door is Open";
-                btn.textContent = "Close the Door";
-            } else if (doorSpan.textContent === "close") {
-                text.textContent = "The Door is Closed";
-                btn.textContent = "Open the Door";
-            } else {
-                text.textContent = "Unknown Door Status";
-                btn.textContent = "Try Again";
-            }
-        })
-        .catch(err => {
-            alert("خطا در دریافت وضعیت در");
-            console.error(err);
-        });
+    if (doorSpan.textContent === "open") {
+        text.textContent = "The Door is Open";
+        btn.textContent = "Close the Door";
+    } else if (doorSpan.textContent === "close") {
+        text.textContent = "The Door is Closed";
+        btn.textContent = "Open the Door";
+    } else {
+        text.textContent = "Unknown Door Status";
+        btn.textContent = "Try Again";
+    }
+  
     toggleSidebar();
 }
 
@@ -276,14 +295,112 @@ function toggleMenu() {
     menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
 
-// تابع باز و بسته کردن منوی کناری با کلیک روی آیکن همبرگری
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     sidebar.classList.toggle("open");
 }
 
+//=======================
+function enableCellContextMenu() {
+    const table = document.getElementById('inventory-table');
+    const contextMenu = document.getElementById('contextMenu');
+    let selectedRow = null;
+    table.addEventListener('contextmenu', function (e) {    
+        if (e.target.tagName.toLowerCase() !== 'td') return;
+
+        e.preventDefault();
+        selectedRow = e.target.closest('tr');
+
+        contextMenu.style.top = e.pageY + "px";
+        contextMenu.style.left = e.pageX + "px";
+        contextMenu.style.display = 'block';
+    });
+
+    document.addEventListener('click', function () {
+        contextMenu.style.display = 'none';
+    });
+
+    document.getElementById('addRow').addEventListener('click', function () {
+        if (selectedRow) {
+        const barcode = selectedRow.cells[3].innerText;
+            updateItem(barcode,"add");
+            //console.log(barcode)
+        }
+    });
+
+    document.getElementById('removeRow').addEventListener('click', function () {
+        if (selectedRow) {
+            const barcode = selectedRow.cells[3].innerText;  
+            updateItem(barcode,"remove");
+            //console.log(barcode)
+        }
+    });
+
+    document.getElementById('setLimit').addEventListener('click', function () {
+        if (!selectedRow) return;
+        const barcode = selectedRow.cells[3].innerText;
+        const currentLimit = selectedRow.cells[1].innerText;
+
+        showLimitModal(currentLimit, function (newLimit) {
+            if (newLimit !== null) {
+            //selectedRow.cells[1].innerText = newLimit;
+            updateLimit(barcode,newLimit)
+            }            
+        });     
+    });
+}
+
+function showLimitModal(defaultValue = '', callback) {
+  const modal = document.getElementById('limitModal');
+  const input = document.getElementById('limitInput');
+  const btnOk = document.getElementById('limitOk');
+  const btnCancel = document.getElementById('limitCancel');
+
+  input.value = defaultValue;
+  modal.style.display = 'flex';
+  input.focus();
+
+  function cleanup() {
+    modal.style.display = 'none';
+    btnOk.removeEventListener('click', onOk);
+    btnCancel.removeEventListener('click', onCancel);
+    modal.removeEventListener('click', onOutsideClick);
+  }
+
+  function onOk() {
+    const val = input.value.trim();
+    const num = parseInt(val, 10);
+    if (val === '' || isNaN(num) || !Number.isInteger(num) || num < 0) {
+      alert("Please enter a valid non-negative integer.");
+      input.focus();
+      return;
+    }
+    cleanup();
+    callback(num);
+  }
+
+  function onCancel() {
+    cleanup();
+    callback(null);
+  }
+
+  function onOutsideClick(e) {
+    if (e.target === modal) { // clicked outside modal-content
+      cleanup();
+      callback(null);
+    }
+  }
+
+  btnOk.addEventListener('click', onOk);
+  btnCancel.addEventListener('click', onCancel);
+  modal.addEventListener('click', onOutsideClick);
+}
+
+//=========================
+
 window.onload = () => {
   getInventory();
   initInventorySocket();
   initEnvSocket();
+  enableCellContextMenu();
 };
